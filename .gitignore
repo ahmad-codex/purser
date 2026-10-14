@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+*.log
+
+# Foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/*/31337/
+contracts/foundry-pp/
+contracts/deployments/31337*.json
+
+# Local state and secrets
+.purser/
+.env
+.env.*
+!.env.example
