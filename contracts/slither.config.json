@@ -1,0 +1,5 @@
+{
+  "filter_paths": "lib/|test/|script/",
+  "exclude_dependencies": true,
+  "detectors_to_exclude": "arbitrary-send-eth,calls-loop,incorrect-equality,unused-return,reentrancy-events,timestamp,low-level-calls,assembly,naming-convention,solc-version"
+}
