@@ -1,0 +1,20 @@
+{
+  "name": "@purser/server",
+  "version": "0.1.0",
+  "description": "MCP server and approvals API that let AI agents use a Purser account within its policy",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "purser-server": "src/index.ts"
+  },
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@purser/sdk": "0.1.0",
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "viem": "^2.57.7",
+    "zod": "^4.6.7"
+  }
+}
