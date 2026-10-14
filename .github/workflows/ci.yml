@@ -1,0 +1,113 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    env:
+      FOUNDRY_PROFILE: ci
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+      - name: Format
+        run: forge fmt --check
+      - name: Build
+        run: forge build --sizes
+      - name: Unit, fuzz and invariant tests
+        run: forge test -vvv
+      - name: Gas snapshot
+        run: forge snapshot --check --match-path "test/PurserAccount.t.sol" --tolerance 2
+
+  slither:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: crytic/slither-action@v0.4.2
+        with:
+          target: contracts
+          slither-config: contracts/slither.config.json
+          fail-on: medium
+
+  typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit tests
+        run: npm test
+      - name: Build the console
+        run: npm run build -w @purser/console
+
+  e2e:
+    name: end to end (MCP demo on Anvil)
+    runs-on: ubuntu-latest
+    needs: [contracts, typescript]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Start Anvil, deploy and seed
+        run: ./scripts/local-up.sh
+      - name: Build the console
+        run: npm run build -w @purser/console
+      - name: Start the server
+        run: |
+          npm run server > server.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8787/healthz && break; sleep 1; done
+      - name: Run the demo
+        run: npm run demo
+      - name: Server log
+        if: failure()
+        run: cat server.log
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - name: Build the server image
+        run: docker build -t purser:ci .
+      - name: Build the all-in-one demo image
+        run: docker build -f Dockerfile.demo -t purser:demo .
+      - name: Play the demo story inside the demo image
+        run: |
+          docker run -d --name demo -e DEMO_PACE_MS=0 purser:demo
+          for i in $(seq 1 90); do
+            docker logs demo 2>&1 | grep -q 'All steps behaved as expected' && { docker logs demo; exit 0; }
+            docker logs demo 2>&1 | grep -q 'did not behave as expected' && break
+            sleep 2
+          done
+          docker logs demo
+          exit 1

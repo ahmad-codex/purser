@@ -1,0 +1,30 @@
+name: Feature request
+description: Suggest a policy, tool, integration or chain
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What an agent or an owner cannot do today, and why it matters.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: |
+        The change you have in mind. For a new policy, say whether it can be checked during validation
+        (no clock, only the account's own storage) or needs the execution phase.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contribution
+      options:
+        - label: I would like to work on this

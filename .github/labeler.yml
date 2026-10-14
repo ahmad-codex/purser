@@ -1,0 +1,22 @@
+# Path-based labels applied to pull requests by .github/workflows/labeler.yml.
+"area: contracts":
+  - changed-files:
+      - any-glob-to-any-file: ["contracts/src/**", "contracts/script/**"]
+"area: sdk":
+  - changed-files:
+      - any-glob-to-any-file: ["packages/sdk/**"]
+"area: mcp-server":
+  - changed-files:
+      - any-glob-to-any-file: ["packages/server/**"]
+"area: console":
+  - changed-files:
+      - any-glob-to-any-file: ["apps/console/**"]
+tests:
+  - changed-files:
+      - any-glob-to-any-file: ["contracts/test/**", "packages/*/test/**"]
+documentation:
+  - changed-files:
+      - any-glob-to-any-file: ["docs/**", "*.md"]
+ci:
+  - changed-files:
+      - any-glob-to-any-file: [".github/**"]

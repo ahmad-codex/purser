@@ -1,0 +1,56 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Found a way for a session key to spend outside its policy? Do not open an issue: report it
+        privately at https://github.com/ahmad-codex/purser/security/advisories/new
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: MCP tool calls, SDK calls, forge commands or a failing test. Never paste private keys.
+      placeholder: |
+        1. docker compose up
+        2. send_eth { "to": "merchant", "amount": "0.01", "reason": "..." }
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error, revert reason or logs
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: Commit or version
+      placeholder: e.g. 0.1.0 or a commit SHA
+    validations:
+      required: true
+  - type: dropdown
+    id: env
+    attributes:
+      label: Where does it happen
+      options:
+        - docker compose (local Anvil)
+        - npm run server against Anvil
+        - a public testnet
+        - contracts only (forge test)
+        - other
+    validations:
+      required: true
+  - type: input
+    id: client
+    attributes:
+      label: MCP client, if any
+      placeholder: e.g. Claude Code, Claude Desktop, Cursor

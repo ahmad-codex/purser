@@ -1,0 +1,27 @@
+name: greet
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  greet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/first-interaction@v3
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          issue_message: |
+            Thanks for opening your first issue here. The commit or version you run and the exact
+            tool call, SDK call or test that fails help the most. Please make sure no private key
+            is pasted above.
+          pr_message: |
+            Thanks for your first pull request. CI runs forge fmt, build and tests (unit, fuzz and
+            invariant), Slither, the TypeScript checks and the end-to-end demo on a local chain;
+            all must pass. CONTRIBUTING.md lists what reviews check.
