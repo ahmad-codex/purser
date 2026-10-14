@@ -1,0 +1,17 @@
+{
+  "name": "@purser/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript client for Purser accounts: session keys, budgets and owner approvals on ERC-4337",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "viem": "^2.57.7"
+  }
+}
