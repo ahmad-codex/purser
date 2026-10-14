@@ -1,0 +1,76 @@
+# Everything on your machine, with development keys:
+#
+#   git clone --recursive https://github.com/ahmad-codex/purser && cd purser
+#   docker compose up            # console: http://localhost:8787   MCP: http://localhost:8787/mcp
+#   docker compose run --rm demo # an agent pays, gets blocked, and the owner approves
+#
+# The keys below are Anvil's public development keys. Never send real funds to them.
+name: purser
+
+x-dev-keys:
+  owner: &owner_key "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+  relayer: &relayer_key "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"
+  agent: &agent_key "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a"
+
+services:
+  anvil:
+    image: ghcr.io/foundry-rs/foundry:latest
+    entrypoint: ["anvil", "--host", "0.0.0.0"]
+    ports:
+      - "127.0.0.1:8545:8545"
+    healthcheck:
+      test: ["CMD", "cast", "chain-id", "--rpc-url", "http://127.0.0.1:8545"]
+      interval: 2s
+      retries: 30
+
+  deploy:
+    image: ghcr.io/foundry-rs/foundry:latest
+    user: root
+    working_dir: /work
+    volumes:
+      - ./contracts:/work
+      - foundry-svm:/root/.svm
+    environment:
+      OWNER_PRIVATE_KEY: *owner_key
+      AGENT_ADDRESS: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
+    entrypoint: ["sh", "-c"]
+    command:
+      - >
+        forge script script/Deploy.s.sol --rpc-url http://anvil:8545 --broadcast --private-key $$OWNER_PRIVATE_KEY &&
+        forge script script/SeedDemo.s.sol --rpc-url http://anvil:8545 --broadcast
+    depends_on:
+      anvil:
+        condition: service_healthy
+
+  server:
+    build: .
+    ports:
+      - "127.0.0.1:8787:8787"
+    volumes:
+      - ./contracts/deployments:/deployments:ro
+      - server-data:/data
+    environment:
+      PURSER_RPC_URL: http://anvil:8545
+      PURSER_DEPLOYMENT: /deployments/31337.demo.json
+      PURSER_AGENT_PRIVATE_KEY: *agent_key
+      PURSER_RELAYER_PRIVATE_KEY: *relayer_key
+      PURSER_OWNER_PRIVATE_KEY: *owner_key
+      PURSER_DEMO: "true"
+    depends_on:
+      deploy:
+        condition: service_completed_successfully
+
+  demo:
+    build: .
+    profiles: ["demo"]
+    environment:
+      PURSER_URL: http://server:8787
+      DEMO_PACE_MS: "800"
+    command: ["node_modules/.bin/tsx", "scripts/demo.ts"]
+    depends_on:
+      server:
+        condition: service_healthy
+
+volumes:
+  foundry-svm:
+  server-data:

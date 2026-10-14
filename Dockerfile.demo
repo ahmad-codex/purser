@@ -1,0 +1,42 @@
+# All-in-one demo: a local chain, the contracts, a seeded agent, the MCP server and the console.
+#
+#   docker run --rm -it -p 127.0.0.1:8787:8787 ghcr.io/ahmad-codex/purser:demo
+#
+# On start it deploys a fresh account, then plays the agent story in the terminal while the console
+# at http://localhost:8787 updates live. Uses Anvil's public development keys; nothing leaves the
+# container and everything is gone when it stops.
+
+FROM ghcr.io/foundry-rs/foundry:v1.8.1 AS contracts
+USER root
+WORKDIR /contracts
+COPY contracts/ ./
+RUN forge build
+
+FROM node:22-bookworm-slim AS app
+WORKDIR /app
+COPY package.json package-lock.json tsconfig.base.json ./
+COPY packages/sdk/package.json packages/sdk/
+COPY packages/server/package.json packages/server/
+COPY apps/console/package.json apps/console/
+RUN npm ci --no-audit --no-fund
+COPY packages packages
+COPY apps/console apps/console
+RUN npm run build -w @purser/console
+
+FROM node:22-bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY --from=contracts /usr/local/bin/forge /usr/local/bin/anvil /usr/local/bin/cast /usr/local/bin/
+COPY --from=contracts /root/.svm /root/.svm
+COPY --from=contracts /contracts /contracts
+WORKDIR /app
+COPY --from=app /app /app
+COPY scripts/demo.ts scripts/demo.ts
+COPY scripts/demo-entrypoint.sh /usr/local/bin/purser-demo
+RUN chmod +x /usr/local/bin/purser-demo && rm -rf /app/apps/console/src
+ENV PURSER_HOST=0.0.0.0 \
+    PURSER_PORT=8787 \
+    PURSER_CONSOLE_DIR=/app/apps/console/dist \
+    PURSER_DATA_DIR=/tmp/purser \
+    PURSER_DEMO=true
+EXPOSE 8787 8545
+ENTRYPOINT ["/usr/local/bin/purser-demo"]

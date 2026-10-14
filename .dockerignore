@@ -1,0 +1,10 @@
+**/node_modules
+**/dist
+contracts/out
+contracts/cache
+contracts/broadcast
+contracts/lib
+contracts/foundry-pp
+.purser
+.env*
+.git
