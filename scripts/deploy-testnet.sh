@@ -48,7 +48,7 @@ else
     local tool="$1"; shift
     MSYS_NO_PATHCONV=1 docker run --rm --user root -v "$DIR:/work" -v purser-svm:/root/.svm -w /work \
       -e OWNER_PRIVATE_KEY -e AGENT_ADDRESS -e FUND_ETH_WEI -e ETH_PER_TX_WEI -e ETH_PER_PERIOD_WEI \
-      -e ETHERSCAN_API_KEY -e "$RPC_VAR" --entrypoint "$tool" ghcr.io/foundry-rs/foundry:latest "$@"
+      -e ETHERSCAN_API_KEY -e "$RPC_VAR" --entrypoint "$tool" ghcr.io/foundry-rs/foundry:v1.8.1 "$@"
   }
 fi
 

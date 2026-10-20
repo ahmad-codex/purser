@@ -24,14 +24,14 @@ else
   if ! docker ps --format '{{.Names}}' | grep -q '^purser-anvil$'; then
     docker rm -f purser-anvil >/dev/null 2>&1 || true
     MSYS_NO_PATHCONV=1 docker run -d --name purser-anvil -p 8545:8545 --entrypoint anvil \
-      ghcr.io/foundry-rs/foundry:latest --host 0.0.0.0 >/dev/null
+      ghcr.io/foundry-rs/foundry:v1.8.1 --host 0.0.0.0 >/dev/null
     sleep 3
   fi
   DIR="$(cd contracts && (pwd -W 2>/dev/null || pwd))"
   run() {
     local tool="$1"; shift
     MSYS_NO_PATHCONV=1 docker run --rm --user root -v "$DIR:/work" -v purser-svm:/root/.svm -w /work \
-      -e OWNER_PRIVATE_KEY -e AGENT_ADDRESS --entrypoint "$tool" ghcr.io/foundry-rs/foundry:latest "$@"
+      -e OWNER_PRIVATE_KEY -e AGENT_ADDRESS --entrypoint "$tool" ghcr.io/foundry-rs/foundry:v1.8.1 "$@"
   }
 fi
 

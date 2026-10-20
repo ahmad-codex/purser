@@ -14,7 +14,7 @@ x-dev-keys:
 
 services:
   anvil:
-    image: ghcr.io/foundry-rs/foundry:latest
+    image: ghcr.io/foundry-rs/foundry:v1.8.1
     entrypoint: ["anvil", "--host", "0.0.0.0"]
     ports:
       - "127.0.0.1:8545:8545"
@@ -24,7 +24,7 @@ services:
       retries: 30
 
   deploy:
-    image: ghcr.io/foundry-rs/foundry:latest
+    image: ghcr.io/foundry-rs/foundry:v1.8.1
     user: root
     working_dir: /work
     volumes:
