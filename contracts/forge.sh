@@ -5,4 +5,4 @@ DIR="$(cd "$(dirname "$0")" && (pwd -W 2>/dev/null || pwd))"
 TOOL="$1"
 shift
 MSYS_NO_PATHCONV=1 exec docker run --rm -i --user root -v "$DIR:/work" -v purser-svm:/root/.svm -w /work \
-  --network host --entrypoint "$TOOL" ghcr.io/foundry-rs/foundry:latest "$@"
+  --network host --entrypoint "$TOOL" ghcr.io/foundry-rs/foundry:v1.8.1 "$@"
