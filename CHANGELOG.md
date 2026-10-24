@@ -6,6 +6,13 @@ All notable changes to this project are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- MCP tool annotations: `wallet_status`, `get_request` and `list_requests` are read-only; `send_eth`,
+  `send_token` and `call_contract` are marked destructive and not idempotent, so hosts can confirm a
+  payment before it runs.
+- Tests that call every MCP tool through an in-memory client.
+
 ## [0.1.0] - 2026-10-20
 
 ### Added
