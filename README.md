@@ -177,7 +177,7 @@ and a faucet drip of under 0.01 ETH covers everything.
 
 ## Status
 
-Early, version 0.1.0. Not audited. Use testnets, and do not put real funds in an account you have
+Early, version 0.1.1. Not audited. Use testnets, and do not put real funds in an account you have
 not reviewed yourself. What is planned next is in [ROADMAP.md](./ROADMAP.md), and issues labelled
 `good first issue` are a good place to start contributing.
 

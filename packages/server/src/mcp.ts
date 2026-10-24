@@ -3,7 +3,7 @@ import { formatUnits } from 'viem';
 import { z } from 'zod';
 import type { ActionResult, WalletService } from './service.ts';
 
-const VERSION = '0.1.0';
+const VERSION = '0.1.1';
 
 /** Refusals about what the agent may do at all, as opposed to how much. */
 const SCOPE_ERRORS = new Set(['CallNotAllowed', 'TokenNotAllowed', 'SelfCallNotAllowed']);
