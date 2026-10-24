@@ -6,6 +6,8 @@ All notable changes to this project are recorded here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-24
+
 ### Added
 
 - MCP tool annotations: `wallet_status`, `get_request` and `list_requests` are read-only; `send_eth`,
@@ -35,5 +37,6 @@ All notable changes to this project are recorded here. The format follows
 - `docker compose up` for a local chain with a seeded demo, `scripts/demo.ts` end-to-end demo,
   `scripts/deploy-testnet.sh` for Base Sepolia and Sepolia.
 
-[Unreleased]: https://github.com/ahmad-codex/purser/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/ahmad-codex/purser/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/ahmad-codex/purser/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/ahmad-codex/purser/releases/tag/v0.1.0
