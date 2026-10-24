@@ -8,6 +8,10 @@ const VERSION = '0.1.0';
 /** Refusals about what the agent may do at all, as opposed to how much. */
 const SCOPE_ERRORS = new Set(['CallNotAllowed', 'TokenNotAllowed', 'SelfCallNotAllowed']);
 
+/** Hints for MCP hosts: reads are safe to repeat, payments move funds and must be confirmed. */
+const reads = (openWorldHint: boolean) => ({ readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint });
+const PAYS = { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true };
+
 const text = (value: unknown) => ({
   content: [{ type: 'text' as const, text: typeof value === 'string' ? value : JSON.stringify(value, null, 2) }],
 });
@@ -51,6 +55,7 @@ export function createMcpServer(service: WalletService): McpServer {
         'Balances of the wallet, and your own limits: per-transaction caps, the budget left in the current period ' +
         'and when it resets, when your access expires, and whether the owner has frozen the wallet.',
       inputSchema: {},
+      annotations: reads(true),
     },
     async () => {
       const { state, me } = await service.status();
@@ -88,6 +93,7 @@ export function createMcpServer(service: WalletService): McpServer {
         amount: z.string().describe('Amount in ETH, e.g. "0.01"'),
         reason: z.string().describe('What the payment is for, shown to the owner'),
       },
+      annotations: PAYS,
     },
     async ({ to, amount, reason }) => text(describeResult(await service.sendEth(to, amount, reason))),
   );
@@ -103,6 +109,7 @@ export function createMcpServer(service: WalletService): McpServer {
         amount: z.string().describe('Amount in whole tokens, e.g. "25.5"'),
         reason: z.string().describe('What the payment is for, shown to the owner'),
       },
+      annotations: PAYS,
     },
     async ({ token, to, amount, reason }) => text(describeResult(await service.sendToken(token, to, amount, reason))),
   );
@@ -121,6 +128,7 @@ export function createMcpServer(service: WalletService): McpServer {
         value: z.string().optional().describe('ETH to send with the call, e.g. "0.01"'),
         reason: z.string().describe('What the call is for, shown to the owner'),
       },
+      annotations: PAYS,
     },
     async (input) =>
       text(describeResult(await service.callContract(input.target, input.function, input.args, input.value, input.reason))),
@@ -132,6 +140,7 @@ export function createMcpServer(service: WalletService): McpServer {
       title: 'Approval request status',
       description: 'Check whether the owner approved, rejected or has not yet decided an approval request.',
       inputSchema: { id: z.string().describe('Request id returned when the payment needed approval') },
+      annotations: reads(false),
     },
     async ({ id }) => {
       const r = service.requests.get(id);
@@ -147,6 +156,7 @@ export function createMcpServer(service: WalletService): McpServer {
       title: 'List approval requests',
       description: 'Recent approval requests and their status.',
       inputSchema: {},
+      annotations: reads(false),
     },
     async () => {
       const items = service.requests.list().slice(0, 20);
