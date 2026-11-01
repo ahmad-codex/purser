@@ -27,4 +27,5 @@ COPY --from=console /app/apps/console/dist apps/console/dist
 VOLUME /data
 EXPOSE 8787
 HEALTHCHECK --interval=10s --timeout=3s CMD wget -qO- http://127.0.0.1:8787/healthz || exit 1
+LABEL io.modelcontextprotocol.server.name="io.github.ahmad-codex/purser"
 CMD ["node_modules/.bin/tsx", "packages/server/src/index.ts"]

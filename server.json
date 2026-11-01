@@ -1,0 +1,54 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.ahmad-codex/purser",
+  "title": "Purser",
+  "description": "Wallet for AI agents with on-chain spending limits and owner approval over the limit",
+  "version": "0.1.2",
+  "repository": {
+    "url": "https://github.com/ahmad-codex/purser",
+    "source": "github"
+  },
+  "websiteUrl": "https://github.com/ahmad-codex/purser",
+  "packages": [
+    {
+      "registryType": "oci",
+      "identifier": "ghcr.io/ahmad-codex/purser:0.1.2",
+      "transport": {
+        "type": "streamable-http",
+        "url": "http://localhost:8787/mcp"
+      },
+      "environmentVariables": [
+        {
+          "name": "PURSER_RPC_URL",
+          "description": "JSON-RPC URL of the chain the account is on",
+          "isRequired": true
+        },
+        {
+          "name": "PURSER_ACCOUNT",
+          "description": "Address of the Purser smart account",
+          "isRequired": true
+        },
+        {
+          "name": "PURSER_AGENT_PRIVATE_KEY",
+          "description": "The agent's session key. The server never needs the owner key.",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "PURSER_BUNDLER_URL",
+          "description": "ERC-4337 bundler URL. Without one, the relayer key submits handleOps itself."
+        },
+        {
+          "name": "PURSER_RELAYER_PRIVATE_KEY",
+          "description": "Pays for handleOps when there is no bundler. Defaults to the agent key.",
+          "isSecret": true
+        },
+        {
+          "name": "PURSER_API_TOKEN",
+          "description": "Bearer token for the approvals API and console",
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
