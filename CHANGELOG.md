@@ -6,6 +6,14 @@ All notable changes to this project are recorded here. The format follows
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-01
+
+### Added
+
+- Listing in the official MCP Registry as `io.github.ahmad-codex/purser`: `server.json`, the
+  `io.modelcontextprotocol.server.name` label on the server image, and a workflow that publishes
+  after each release image.
+
 ## [0.1.1] - 2026-10-24
 
 ### Added
@@ -37,6 +45,7 @@ All notable changes to this project are recorded here. The format follows
 - `docker compose up` for a local chain with a seeded demo, `scripts/demo.ts` end-to-end demo,
   `scripts/deploy-testnet.sh` for Base Sepolia and Sepolia.
 
-[Unreleased]: https://github.com/ahmad-codex/purser/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/ahmad-codex/purser/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/ahmad-codex/purser/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/ahmad-codex/purser/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/ahmad-codex/purser/releases/tag/v0.1.0
