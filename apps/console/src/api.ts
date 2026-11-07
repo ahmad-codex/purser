@@ -107,8 +107,46 @@ interface Eip6963ProviderDetail {
   provider: Eip1193;
 }
 
+/** What the picker shows for each wallet that announced itself. */
+export type WalletInfo = Eip6963ProviderDetail['info'];
+
+/** Shows the owner the wallets and resolves to the uuid of the one they pick. */
+type WalletChooser = (wallets: WalletInfo[]) => Promise<string>;
+
 const WALLET_CHOICE_KEY = 'purser.wallet';
 let chosenWallet: Eip1193 | undefined;
+let chooser: WalletChooser | undefined;
+
+/** The console registers its picker here; without one, a browser prompt is used. */
+export function setWalletChooser(fn: WalletChooser | undefined): void {
+  chooser = fn;
+}
+
+// Some private browsing modes throw on storage access, so a failed read or write is not fatal.
+function readSavedWallet(): string | null {
+  try {
+    return localStorage.getItem(WALLET_CHOICE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function saveWallet(rdns: string): void {
+  try {
+    localStorage.setItem(WALLET_CHOICE_KEY, rdns);
+  } catch {
+    // The choice is not remembered, which is fine.
+  }
+}
+
+function forgetWallet(): void {
+  chosenWallet = undefined;
+  try {
+    localStorage.removeItem(WALLET_CHOICE_KEY);
+  } catch {
+    // Nothing was saved.
+  }
+}
 
 /** Collects the wallets that announce themselves through EIP-6963. */
 function discoverWallets(): Promise<Eip6963ProviderDetail[]> {
@@ -127,7 +165,13 @@ function discoverWallets(): Promise<Eip6963ProviderDetail[]> {
   });
 }
 
-function askWhich(wallets: Eip6963ProviderDetail[]): Eip6963ProviderDetail {
+async function askWhich(wallets: Eip6963ProviderDetail[]): Promise<Eip6963ProviderDetail> {
+  if (chooser) {
+    const uuid = await chooser(wallets.map((w) => w.info));
+    const choice = wallets.find((w) => w.info.uuid === uuid);
+    if (!choice) throw new Error('No wallet selected.');
+    return choice;
+  }
   const list = wallets.map((w, i) => `${i + 1}. ${w.info.name}`).join('\n');
   const answer = window.prompt(`Choose the wallet that holds the owner key:\n${list}`, '1');
   const choice = wallets[Number(answer) - 1];
@@ -138,10 +182,10 @@ function askWhich(wallets: Eip6963ProviderDetail[]): Eip6963ProviderDetail {
 async function wallet(): Promise<Eip1193> {
   if (chosenWallet) return chosenWallet;
   const found = await discoverWallets();
-  const saved = localStorage.getItem(WALLET_CHOICE_KEY);
-  const pick = found.length > 1 ? (found.find((w) => w.info.rdns === saved) ?? askWhich(found)) : found[0];
+  const saved = readSavedWallet();
+  const pick = found.length > 1 ? (found.find((w) => w.info.rdns === saved) ?? (await askWhich(found))) : found[0];
   if (pick) {
-    localStorage.setItem(WALLET_CHOICE_KEY, pick.info.rdns);
+    saveWallet(pick.info.rdns);
     chosenWallet = pick.provider;
     return pick.provider;
   }
@@ -158,6 +202,12 @@ async function ownerAddress(): Promise<string> {
 
 export const api = {
   state: () => call<Snapshot>('state'),
+
+  /** Forgets the remembered wallet and asks the owner to choose again. */
+  async switchWallet(): Promise<void> {
+    forgetWallet();
+    await wallet();
+  },
 
   /** Demo mode approves with the server's owner key; otherwise the owner's wallet signs the hash. */
   async approve(id: string, viaServer: boolean): Promise<ApprovalRequest> {
