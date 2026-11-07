@@ -6,6 +6,10 @@ All notable changes to this project are recorded here. The format follows
 
 ## [Unreleased]
 
+
+### Added
+
+- The console discovers browser wallets with EIP-6963 and lets the owner choose when several are installed. The choice is remembered, and the console falls back to `window.ethereum` when no wallet announces itself.
 ## [0.1.2] - 2026-11-01
 
 ### Added
