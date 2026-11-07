@@ -158,3 +158,16 @@ a { color: var(--brand); }
   .grid { grid-template-columns: 1fr; }
   .request { flex-direction: column; align-items: stretch; }
 }
+
+.link-button { background: none; border: 0; padding: 0; color: var(--brand); font-size: 12.5px; text-decoration: underline; }
+.link-button:hover:not(:disabled) { opacity: 0.8; }
+
+.modal-backdrop { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgb(0 0 0 / 45%); }
+.modal { width: 100%; max-width: 360px; padding: 20px; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); }
+.modal h2 { margin: 0 0 4px; font-size: 16px; }
+.modal p { margin: 0 0 14px; }
+.wallet-list { display: grid; gap: 8px; margin: 0 0 12px; padding: 0; list-style: none; }
+.wallet-option { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; text-align: left; background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; }
+.wallet-option:hover, .wallet-option:focus-visible { background: var(--brand-soft); border-color: var(--brand); }
+.wallet-option img { border-radius: 6px; }
+.modal-cancel { padding: 4px 0; background: none; border: 0; color: var(--muted); }
