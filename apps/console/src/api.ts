@@ -102,14 +102,56 @@ interface Eip1193 {
   request(args: { method: string; params?: unknown[] }): Promise<unknown>;
 }
 
-function wallet(): Eip1193 {
+interface Eip6963ProviderDetail {
+  info: { uuid: string; name: string; icon: string; rdns: string };
+  provider: Eip1193;
+}
+
+const WALLET_CHOICE_KEY = 'purser.wallet';
+let chosenWallet: Eip1193 | undefined;
+
+/** Collects the wallets that announce themselves through EIP-6963. */
+function discoverWallets(): Promise<Eip6963ProviderDetail[]> {
+  return new Promise((resolve) => {
+    const found = new Map<string, Eip6963ProviderDetail>();
+    const onAnnounce = (event: Event) => {
+      const detail = (event as CustomEvent<Eip6963ProviderDetail>).detail;
+      found.set(detail.info.uuid, detail);
+    };
+    window.addEventListener('eip6963:announceProvider', onAnnounce);
+    window.dispatchEvent(new Event('eip6963:requestProvider'));
+    setTimeout(() => {
+      window.removeEventListener('eip6963:announceProvider', onAnnounce);
+      resolve(Array.from(found.values()));
+    }, 100);
+  });
+}
+
+function askWhich(wallets: Eip6963ProviderDetail[]): Eip6963ProviderDetail {
+  const list = wallets.map((w, i) => `${i + 1}. ${w.info.name}`).join('\n');
+  const answer = window.prompt(`Choose the wallet that holds the owner key:\n${list}`, '1');
+  const choice = wallets[Number(answer) - 1];
+  if (!choice) throw new Error('No wallet selected.');
+  return choice;
+}
+
+async function wallet(): Promise<Eip1193> {
+  if (chosenWallet) return chosenWallet;
+  const found = await discoverWallets();
+  const saved = localStorage.getItem(WALLET_CHOICE_KEY);
+  const pick = found.length > 1 ? (found.find((w) => w.info.rdns === saved) ?? askWhich(found)) : found[0];
+  if (pick) {
+    localStorage.setItem(WALLET_CHOICE_KEY, pick.info.rdns);
+    chosenWallet = pick.provider;
+    return pick.provider;
+  }
   const eth = (window as unknown as { ethereum?: Eip1193 }).ethereum;
   if (!eth) throw new Error('No wallet found. Install a browser wallet that holds the owner key.');
   return eth;
 }
 
 async function ownerAddress(): Promise<string> {
-  const accounts = (await wallet().request({ method: 'eth_requestAccounts' })) as string[];
+  const accounts = (await (await wallet()).request({ method: 'eth_requestAccounts' })) as string[];
   if (!accounts[0]) throw new Error('The wallet returned no account.');
   return accounts[0];
 }
@@ -122,7 +164,7 @@ export const api = {
     if (viaServer) return post<ApprovalRequest>(`requests/${id}/approve`);
     const { userOpHash } = await post<{ userOpHash: Hex }>(`requests/${id}/prepare`);
     const from = await ownerAddress();
-    const signature = (await wallet().request({ method: 'personal_sign', params: [userOpHash, from] })) as Hex;
+    const signature = (await (await wallet()).request({ method: 'personal_sign', params: [userOpHash, from] })) as Hex;
     return post<ApprovalRequest>(`requests/${id}/approve`, { signature });
   },
 
@@ -135,6 +177,6 @@ export const api = {
     }
     const tx = await post<{ to: string; data: string }>(`owner/${action}`, { key, mode: 'calldata' });
     const from = await ownerAddress();
-    await wallet().request({ method: 'eth_sendTransaction', params: [{ from, ...tx }] });
+    await (await wallet()).request({ method: 'eth_sendTransaction', params: [{ from, ...tx }] });
   },
 };
