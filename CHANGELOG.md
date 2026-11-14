@@ -9,6 +9,7 @@ All notable changes to this project are recorded here. The format follows
 ### Added
 
 - The console discovers browser wallets with EIP-6963 and lets the owner choose when several are installed. The choice is remembered, and the console falls back to `window.ethereum` when no wallet announces itself.
+- Pending approval requests expire after 24 hours, or after `PURSER_REQUEST_TTL` seconds. An expired request has the status `expired`, cannot be approved, and shows as expired in the console history.
 
 ## [0.1.2] - 2026-11-01
 
