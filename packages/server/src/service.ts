@@ -52,7 +52,7 @@ export class WalletService {
       relayer: privateKeyToAccount(config.relayerKey ?? config.agentKey),
       fromBlock: config.fromBlock,
     });
-    this.requests = new RequestStore(config.dataDir);
+    this.requests = new RequestStore(config.dataDir, config.requestTtlMs);
   }
 
   get canApproveWithoutWallet(): boolean {

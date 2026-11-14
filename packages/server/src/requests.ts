@@ -4,7 +4,10 @@ import { join } from 'node:path';
 import type { Call, PackedUserOperation } from '@purser/sdk';
 import type { Hex } from 'viem';
 
-export type RequestStatus = 'pending' | 'executed' | 'failed' | 'rejected';
+export type RequestStatus = 'pending' | 'executed' | 'failed' | 'rejected' | 'expired';
+
+/** How long a pending request can wait for the owner before it expires: 24 hours. */
+export const DEFAULT_REQUEST_TTL_MS = 24 * 60 * 60 * 1000;
 
 /** An action the agent asked for that is over its limits and waits for the owner. */
 export interface ApprovalRequest {
@@ -34,7 +37,10 @@ export class RequestStore {
   private items: ApprovalRequest[] = [];
   private loadedAt = 0;
 
-  constructor(dataDir: string) {
+  constructor(
+    dataDir: string,
+    private readonly ttlMs = DEFAULT_REQUEST_TTL_MS,
+  ) {
     mkdirSync(dataDir, { recursive: true });
     this.file = join(dataDir, 'requests.json');
     this.reload();
@@ -48,13 +54,29 @@ export class RequestStore {
     this.loadedAt = mtime;
   }
 
+  /** Marks pending requests that waited longer than the TTL as expired. */
+  private expireStale() {
+    const cutoff = Date.now() - this.ttlMs;
+    let changed = false;
+    for (const r of this.items) {
+      if (r.status === 'pending' && Date.parse(r.createdAt) <= cutoff) {
+        r.status = 'expired';
+        r.updatedAt = new Date().toISOString();
+        changed = true;
+      }
+    }
+    if (changed) this.save();
+  }
+
   list(): ApprovalRequest[] {
     this.reload();
+    this.expireStale();
     return [...this.items].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 
   get(id: string): ApprovalRequest | undefined {
     this.reload();
+    this.expireStale();
     return this.items.find((r) => r.id === id || r.id.startsWith(id));
   }
 
