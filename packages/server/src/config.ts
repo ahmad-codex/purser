@@ -17,6 +17,8 @@ export interface ServerConfig {
   host: string;
   port: number;
   dataDir: string;
+  /** How long a pending approval request lasts, in milliseconds. */
+  requestTtlMs: number;
   consoleDir?: string;
   apiToken?: string;
   explorerUrl?: string;
@@ -96,6 +98,7 @@ export function loadConfig(): ServerConfig {
     host: env('HOST') ?? '127.0.0.1',
     port: Number(env('PORT') ?? 8787),
     dataDir: env('DATA_DIR') ?? '.purser',
+    requestTtlMs: parseTtl(env('REQUEST_TTL')),
     consoleDir: env('CONSOLE_DIR'),
     apiToken: env('API_TOKEN'),
     explorerUrl: env('EXPLORER_URL'),
@@ -103,4 +106,12 @@ export function loadConfig(): ServerConfig {
     addressBook: { ...fromFile.book, ...parseMap(env('ADDRESS_BOOK')) },
     tokens: { ...fromFile.tokens, ...parseMap(env('TOKENS')) },
   };
+}
+
+/** Reads PURSER_REQUEST_TTL as a number of seconds; empty means the 24 hour default. */
+function parseTtl(value: string | undefined): number {
+  if (!value) return 24 * 60 * 60 * 1000;
+  const seconds = Number(value);
+  if (!Number.isFinite(seconds) || seconds <= 0) throw new Error('PURSER_REQUEST_TTL must be a positive number of seconds');
+  return seconds * 1000;
 }
