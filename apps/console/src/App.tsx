@@ -3,6 +3,7 @@ import { api, type Snapshot } from './api';
 import { ActivityFeed } from './ActivityFeed';
 import { AgentCard } from './AgentCard';
 import { Requests } from './Requests';
+import { WalletPicker } from './WalletPicker';
 import { short, units } from './format';
 
 const POLL_MS = 2000;
@@ -65,6 +66,7 @@ export function App() {
 
   return (
     <div className={`app ${state.frozen ? 'is-frozen' : ''}`}>
+      <WalletPicker />
       <header className="topbar">
         <div className="brand">
           <svg viewBox="0 0 32 32" aria-hidden>
@@ -78,6 +80,16 @@ export function App() {
           <span className="mono" title={state.account}>{short(state.account)}</span>
           <span className="chip">chain {state.chainId}</span>
           {snap.demo && <span className="chip warn">demo keys</span>}
+          {!viaServer && (
+            <button
+              type="button"
+              className="link-button"
+              disabled={!!busy}
+              onClick={() => act('switch-wallet', () => api.switchWallet())}
+            >
+              Change wallet
+            </button>
+          )}
         </div>
         <button
           type="button"
